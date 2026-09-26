@@ -1,6 +1,14 @@
 import tkinter as tk
 from tkinter import ttk
 
+# ----- Color Palette (warm and calming: soft green to calm the patients)
+BG_MAIN = "#F4F1E8"
+BG_ACCENT = "#E4E9DD"
+GREEN_DARK = "#6B8F71"
+GREEN_LIGHT = "#A8C3A0"
+TEXT_DARK = "#4A4238"
+TERRACOTTA = "#C97B5C"
+
 sample_providers = [
     {"name": "Dr. Amanda Reyes", "insurance": "Aetna", "type": "Psychiatrist", "specialty": "Anxiety"},
     {"name": "Dr. Marcus Liu", "insurance": "Independence Blue Cross (IBX)", "type": "Therapist", "specialty": "Depression"},
@@ -46,61 +54,113 @@ def on_click():
 root = tk.Tk()
 root.title("Healthcare Helper")
 root.geometry("1280x720")
+root.configure(bg=BG_MAIN)
+
+# ttk styling (ttk widgets ingnore plain tk color options, so we use a style)
+style = ttk.Style(root)
+style.theme_use("clam")
+
+style.configure(
+    "TCombobox",
+    fieldbackground=BG_ACCENT,
+    background=GREEN_LIGHT,
+    foreground= TEXT_DARK,
+    arrowcolor=TEXT_DARK,
+    padding=4,
+)
+style.map(
+    "TCombobox",
+    fieldbackground=[("readonly", BG_ACCENT)],
+    background=[("active", GREEN_LIGHT)],
+)
+
 
 # add a label
-label = tk.Label(root, text="How can we help you today?", font=("Times New Roman", 16))
-label.pack(pady=20)
+label = tk.Label(
+    root, 
+    text="How can we help you today?", 
+    font=("Georgia", 18, "bold"),
+    bg=BG_MAIN,
+    fg=GREEN_DARK,
+)
+label.pack(pady=(30, 20))
 
 # frames to hold the dropdowns side by side
-dropdown_frame = tk.Frame(root)
+dropdown_frame = tk.Frame(root, bg=BG_MAIN)
 dropdown_frame.pack(pady=10)
 
 #add age group
 age_options = ["Todler", "Adolescent", "Young adult", "Adult"]
 age_combo = ttk.Combobox(dropdown_frame, values= age_options, state="readonly", width=18)
 age_combo.set("Choose your age range")
-age_combo.grid(row = 0, column = 0, padx = 5)
+age_combo.grid(row = 0, column = 0, padx = 6)
 
 #add Insurance provider menu
 provider_options = ["Independace Blue Cross (IBX)", "Highmark Blue Cross Blue Sheild", "Aetna", "Oscar Health"]
 provider_combo = ttk.Combobox(dropdown_frame, values = provider_options, state="readonly", width=25)
 provider_combo.set("Choose your provider")
-provider_combo.grid(row= 0, column= 1, padx= 5)
+provider_combo.grid(row= 0, column= 1, padx= 6)
 
 #add Provider Type
 service_options = ["Therapist", "Psychologist", "Psychiatrist", "Counselor", "Social Worker"]
 service_combo = ttk.Combobox(dropdown_frame, values= service_options, state= "readonly", width=20)
 service_combo.set("Choose your service type")
-service_combo.grid(row=0, column=2, padx= 5)
+service_combo.grid(row=0, column=2, padx= 6)
 
 #add Verification status
 verification_options = ["All", "Verified", "Potential Issue", "Unable to Verify", "Insurance Mismatch", "Not Accepting New Patients"]
 verification_combo = ttk.Combobox(dropdown_frame, values= verification_options, state= "readonly", width= 22)
 verification_combo.set("Choose Verification status")
-verification_combo.grid(row=0, column=3, padx= 5)
+verification_combo.grid(row=0, column=3, padx= 6)
 
 #add Availability
 availability_options = ["Any", "Accepting New Patients", "Not Accepting New Patients", "Waitlist"]
 availability_combo = ttk.Combobox(dropdown_frame, values= availability_options ,state= "readonly", width= 22)
 availability_combo.set("Choose Availability")
-availability_combo.grid(row=0, column=4, padx= 5)
+availability_combo.grid(row=0, column=4, padx= 6)
 
 #add Specialty
 specialty_options = ["Anxiety", "Depression", "ADHD", "PTSD", "Substance Use", "Couples/Familty", "General Mental Health", "Other"]
 specialty_combo = ttk.Combobox(dropdown_frame, values= specialty_options, state= "readonly", width=20)
 specialty_combo.set("Choose a Specialty")
-specialty_combo.grid(row=0, column=5, padx= 5)
+specialty_combo.grid(row=0, column=5, padx= 6)
 
 # add a button
-button = tk.Button(root, text="Start search", command=on_click)
-button.pack(pady=20)
+button = tk.Button(
+    root, 
+    text="Start search", 
+    command=on_click,
+    bg=TERRACOTTA,
+    fg="white",
+    activebackground=GREEN_DARK,
+    activeforeground="white",
+    font=("Georgia", 12, "bold"),
+    relief="flat",
+    padx=18,
+    pady=8,
+    cursor="hand2",
+)
+button.pack(pady=25)
 
 # results section
-results_frame = tk.Frame(root)
-results_frame.pack(pady=10, fill="both", expand=True)
+results_frame = tk.Frame(root, bg=BG_MAIN)
+results_frame.pack(pady=10, fill="both", expand=True, padx=40)
 
-results_listbox = tk.Listbox(results_frame, width=100, height=15, font=("Ariel", 11))
-results_listbox.pack(side= "left", fill="both", expand= True, padx=(20,0))
+results_listbox = tk.Listbox(
+    results_frame, 
+    width=100, 
+    height=15, 
+    font=("Georgia", 11),
+    bg=BG_ACCENT,
+    fg=TEXT_DARK,
+    selectbackground=GREEN_LIGHT,
+    selectforeground=TEXT_DARK,
+    relief="flat",
+    highlightthickness=1,
+    highlightbackground=GREEN_LIGHT,
+    borderwidth=0,
+)
+results_listbox.pack(side= "left", fill="both", expand= True, padx=(0,0))
 
 results_scrollbar = tk.Scrollbar(results_frame, orient="vertical", command=results_listbox.yview)
 results_scrollbar.pack(side="left", fill="y")
