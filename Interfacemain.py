@@ -66,6 +66,19 @@ def on_click():
     else:
         label.config(text="No providers matches your search.")
 
+def clear_filters():
+    #reset every dropdown back to it's placeholder text
+    age_combo.set("Choose your age range")
+    provider_combo.set("Choose your provider")
+    service_combo.set("Choose your service type")
+    verification_combo.set("Choose Verification status")
+    availability_combo.set("Choose Availability")
+    specialty_combo.set("Choose a Specialty")
+
+    # clear the results list and reset the heading
+    results_listbox.delete(0, tk.END)
+    label.config(text="How can we help you today?")
+
 
 # create main window
 root = tk.Tk()
@@ -142,7 +155,11 @@ specialty_combo = ttk.Combobox(dropdown_frame, values= specialty_options, state=
 specialty_combo.set("Choose a Specialty")
 specialty_combo.grid(row=0, column=5, padx= 6)
 
-# add a button
+# frame to hold the search and clear buttons side by side
+button_frame = tk.Frame(root, bg=BG_MAIN)
+button_frame.pack(pady=25)
+
+# added Search button
 button = tk.Button(
     root, 
     text="Start search", 
@@ -158,6 +175,23 @@ button = tk.Button(
     cursor="hand2",
 )
 button.pack(pady=25)
+
+#added clear filters button
+clear_button = tk.Button(
+    button_frame,
+    text="Clear filters",
+    command=clear_filters,
+    bg=BG_ACCENT,
+    fg=TEXT_DARK,
+    activebackground=GREEN_LIGHT,
+    activeforeground=TEXT_DARK,
+    font=("Georgia", 12, "bold"),
+    relief="flat",
+    padx=18,
+    pady=8,
+    cursor="hand2",
+)
+clear_button.grid(row=0, column=1, padx=8)
 
 # results section
 results_frame = tk.Frame(root, bg=BG_MAIN)
