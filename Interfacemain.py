@@ -9,14 +9,22 @@ GREEN_LIGHT = "#A8C3A0"
 TEXT_DARK = "#4A4238"
 TERRACOTTA = "#C97B5C"
 
+#status colors for results list
+STATUS_COLORS = {
+    "Accepting New Patients": "#4C7A52",
+    "Waitlist": "#B8863B",
+    "Not Accepting New Patients": "#A3514D"
+}
+
 sample_providers = [
-    {"name": "Dr. Amanda Reyes", "insurance": "Aetna", "type": "Psychiatrist", "specialty": "Anxiety"},
-    {"name": "Dr. Marcus Liu", "insurance": "Independence Blue Cross (IBX)", "type": "Therapist", "specialty": "Depression"},
-    {"name": "Dr. Priya Nair", "insurance": "Highmark Blue Cross Blue Shield", "type": "Psychologist", "specialty": "PTSD"},
-    {"name": "Dr. James Whitfield", "insurance": "Oscar Health", "type": "Counselor", "specialty": "Substance Use"},
-    {"name": "Dr. Sofia Alvarez", "insurance": "Aetna", "type": "Social Worker", "specialty": "General Mental Health"},
-    {"name": "Dr. Ben Carter", "insurance": "Independence Blue Cross (IBX)", "type": "Psychiatrist", "specialty": "ADHD"},
+    {"name": "Dr. Amanda Reyes", "insurance": "Aetna", "type": "Psychiatrist", "specialty": "Anxiety", "availability": "Accepting New Patients"},
+    {"name": "Dr. Marcus Liu", "insurance": "Independence Blue Cross (IBX)", "type": "Therapist", "specialty": "Depression", "availability": "Waitlist"},
+    {"name": "Dr. Priya Nair", "insurance": "Highmark Blue Cross Blue Shield", "type": "Psychologist", "specialty": "PTSD", "availability": "Accepting New Patients"},
+    {"name": "Dr. James Whitfield", "insurance": "Oscar Health", "type": "Counselor", "specialty": "Substance Use", "availability": "Not Accepting New Patients"},
+    {"name": "Dr. Sofia Alvarez", "insurance": "Aetna", "type": "Social Worker", "specialty": "General Mental Health", "availability": "Accepting New Patients"},
+    {"name": "Dr. Ben Carter", "insurance": "Independence Blue Cross (IBX)", "type": "Psychiatrist", "specialty": "ADHD", "availability": "Waitlist"},
 ]
+
 
 def on_click():
     label.config(text="Searching...")
@@ -28,6 +36,7 @@ def on_click():
     provider_choice = provider_combo.get()
     service_choice = service_combo.get()
     specialty_choice = specialty_combo.get()
+    availability_choice = availability_combo.get()
 
     matches = []
     for provider in sample_providers:
@@ -37,15 +46,23 @@ def on_click():
             continue
         if specialty_choice not in ("Choose a Specialty", provider["specialty"]):
             continue
+        if availability_choice not in ("Choose Availability", "Any", provider["availability"]):
+            continue
         matches.append(provider)
 
     if matches:
         label.config(text=f"Found {len(matches)} provider(s):")
         for provider in matches:
-            results_listbox.insert(
-                tk.END,
-                f"{provider['name']} - {provider['type']} - {provider['insurance']} - {provider['specialty']}"
+            row_text = (
+                f"{provider['name']} - {provider['type']} - {provider['insurance']} - "
+                f"{provider['specialty']} - {provider['availability']}"
             )
+            results_listbox.insert(tk.END, row_text)
+
+            #color the row by availability status
+            row_index = results_listbox.size() - 1
+            row_color = STATUS_COLORS.get(provider["availability"], TEXT_DARK)
+            results_listbox.itemconfig(row_index, fg=row_color)
     else:
         label.config(text="No providers matches your search.")
 
