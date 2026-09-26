@@ -1,8 +1,46 @@
 import tkinter as tk
 from tkinter import ttk
 
+sample_providers = [
+    {"name": "Dr. Amanda Reyes", "insurance": "Aetna", "type": "Psychiatrist", "specialty": "Anxiety"},
+    {"name": "Dr. Marcus Liu", "insurance": "Independence Blue Cross (IBX)", "type": "Therapist", "specialty": "Depression"},
+    {"name": "Dr. Priya Nair", "insurance": "Highmark Blue Cross Blue Shield", "type": "Psychologist", "specialty": "PTSD"},
+    {"name": "Dr. James Whitfield", "insurance": "Oscar Health", "type": "Counselor", "specialty": "Substance Use"},
+    {"name": "Dr. Sofia Alvarez", "insurance": "Aetna", "type": "Social Worker", "specialty": "General Mental Health"},
+    {"name": "Dr. Ben Carter", "insurance": "Independence Blue Cross (IBX)", "type": "Psychiatrist", "specialty": "ADHD"},
+]
+
 def on_click():
     label.config(text="Searching...")
+
+    # clear old results
+    results_listbox.delete(0, tk.END)
+
+    #grab current dropdown selections
+    provider_choice = provider_combo.get()
+    service_choice = service_combo.get()
+    specialty_choice = specialty_combo.get()
+
+    matches = []
+    for provider in sample_providers:
+        if provider_choice not in ("Choose your provider", provider["insurance"]):
+            continue
+        if service_choice not in ("Choose your service type", provider["type"]):
+            continue
+        if specialty_choice not in ("Choose a Specialty", provider["specialty"]):
+            continue
+        matches.append(provider)
+
+    if matches:
+        label.config(text=f"Found {len(matches)} provider(s):")
+        for provider in matches:
+            results_listbox.insert(
+                tk.END,
+                f"{provider['name']} - {provider['type']} - {provider['insurance']} - {provider['specialty']}"
+            )
+    else:
+        label.config(text="No providers matches your search.")
+
 
 # create main window
 root = tk.Tk()
@@ -56,6 +94,17 @@ specialty_combo.grid(row=0, column=5, padx= 5)
 # add a button
 button = tk.Button(root, text="Start search", command=on_click)
 button.pack(pady=20)
+
+# results section
+results_frame = tk.Frame(root)
+results_frame.pack(pady=10, fill="both", expand=True)
+
+results_listbox = tk.Listbox(results_frame, width=100, height=15, font=("Ariel", 11))
+results_listbox.pack(side= "left", fill="both", expand= True, padx=(20,0))
+
+results_scrollbar = tk.Scrollbar(results_frame, orient="vertical", command=results_listbox.yview)
+results_scrollbar.pack(side="left", fill="y")
+results_listbox.config(yscrollcommand=results_scrollbar.set)
 
 # Start the event loop
 root.mainloop()
