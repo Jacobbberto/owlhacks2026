@@ -1,3 +1,5 @@
+import csv
+import os
 import tkinter as tk
 from tkinter import ttk
 
@@ -16,7 +18,10 @@ STATUS_COLORS = {
     "Not Accepting New Patients": "#A3514D"
 }
 
-sample_providers = [
+# csv import
+CSV_FILE_PATH = "providers.csv"
+
+FALLBACK_PROVIDERS = [
     {"name": "Dr. Amanda Reyes", "insurance": "Aetna", "type": "Psychiatrist", "specialty": "Anxiety", "outcome": "Accepting New Patients"},
     {"name": "Dr. Marcus Liu", "insurance": "Independence Blue Cross (IBX)", "type": "Therapist", "specialty": "Depression", "outcome": "Waitlist"},
     {"name": "Dr. Priya Nair", "insurance": "Highmark Blue Cross Blue Shield", "type": "Psychologist", "specialty": "PTSD", "outcome": "Accepting New Patients"},
@@ -24,6 +29,41 @@ sample_providers = [
     {"name": "Dr. Sofia Alvarez", "insurance": "Aetna", "type": "Social Worker", "specialty": "General Mental Health", "outcome": "Accepting New Patients"},
     {"name": "Dr. Ben Carter", "insurance": "Independence Blue Cross (IBX)", "type": "Psychiatrist", "specialty": "ADHD", "outcome": "Waitlist"},
 ]
+
+def load_providers(csv_path):
+    """
+    Reads provider records from a CSV file into a list of dicts
+
+    IMPORTANT: the keys used elsewhere in this program (name, insurance,
+        type, specialty, outcome) must exactly match your CSV's column
+        headers, including capitalization. Update the dictionary below once
+        you know your friend's actual column names, e.g.:
+    
+            "name": row["Provider Name"],
+            "insurance": row["Insurance"],
+            "phone": row["Phone Number"],   # a display-only field, not filtered
+            ...
+        """
+    if not os.path.exists(csv_path):
+        print(f"CSV file not found at '{csv_path}' - using fallback sample data instead.")
+        return FALLBACK_PROVIDERS
+
+    providers = []
+    with open(csv_path, newline="", encoding="utf-8") as csv_file:
+        reader = csv.DictReader(csv_file)
+        for row in reader:
+            providers.append({
+                "name": row["name"],
+                "insurance": row["insurance"],
+                "type": row["type"],
+                "specialty": row["specialty"],
+                "outcome": row["outcome"],
+                # add more fields here as needed, e.g.:
+                # "phone": row["phone"],
+            })
+    return providers
+
+sample_providers = load_providers(CSV_FILE_PATH)
 
 
 def on_click():
@@ -120,13 +160,13 @@ dropdown_frame = tk.Frame(root, bg=BG_MAIN)
 dropdown_frame.pack(pady=10)
 
 #add age group
-age_options = ["Todler", "Adolescent", "Young adult", "Adult"]
+age_options = ["Toddler", "Adolescent", "Young adult", "Adult"]
 age_combo = ttk.Combobox(dropdown_frame, values= age_options, state="readonly", width=18)
 age_combo.set("Choose your age range")
 age_combo.grid(row = 0, column = 0, padx = 6)
 
 #add Insurance provider menu
-provider_options = ["Independace Blue Cross (IBX)", "Highmark Blue Cross Blue Sheild", "Aetna", "Oscar Health"]
+provider_options = ["Independence Blue Cross (IBX)", "Highmark Blue Cross Blue Shield", "Aetna", "Oscar Health"]
 provider_combo = ttk.Combobox(dropdown_frame, values = provider_options, state="readonly", width=25)
 provider_combo.set("Choose your provider")
 provider_combo.grid(row= 0, column= 1, padx= 6)
@@ -150,7 +190,7 @@ outcome_combo.set("Choose Outcome")
 outcome_combo.grid(row=0, column=4, padx= 6)
 
 #add Specialty
-specialty_options = ["Anxiety", "Depression", "ADHD", "PTSD", "Substance Use", "Couples/Familty", "General Mental Health", "Other"]
+specialty_options = ["Anxiety", "Depression", "ADHD", "PTSD", "Substance Use", "Couples/Family", "General Mental Health", "Other"]
 specialty_combo = ttk.Combobox(dropdown_frame, values= specialty_options, state= "readonly", width=20)
 specialty_combo.set("Choose a Specialty")
 specialty_combo.grid(row=0, column=5, padx= 6)
@@ -161,7 +201,7 @@ button_frame.pack(pady=25)
 
 # added Search button
 button = tk.Button(
-    root, 
+    button_frame, 
     text="Start search", 
     command=on_click,
     bg=TERRACOTTA,
@@ -174,7 +214,7 @@ button = tk.Button(
     pady=8,
     cursor="hand2",
 )
-button.pack(pady=25)
+button.grid(row=0, column=0, padx=8)
 
 #added clear filters button
 clear_button = tk.Button(
