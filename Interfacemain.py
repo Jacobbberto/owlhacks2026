@@ -17,12 +17,12 @@ STATUS_COLORS = {
 }
 
 sample_providers = [
-    {"name": "Dr. Amanda Reyes", "insurance": "Aetna", "type": "Psychiatrist", "specialty": "Anxiety", "availability": "Accepting New Patients"},
-    {"name": "Dr. Marcus Liu", "insurance": "Independence Blue Cross (IBX)", "type": "Therapist", "specialty": "Depression", "availability": "Waitlist"},
-    {"name": "Dr. Priya Nair", "insurance": "Highmark Blue Cross Blue Shield", "type": "Psychologist", "specialty": "PTSD", "availability": "Accepting New Patients"},
-    {"name": "Dr. James Whitfield", "insurance": "Oscar Health", "type": "Counselor", "specialty": "Substance Use", "availability": "Not Accepting New Patients"},
-    {"name": "Dr. Sofia Alvarez", "insurance": "Aetna", "type": "Social Worker", "specialty": "General Mental Health", "availability": "Accepting New Patients"},
-    {"name": "Dr. Ben Carter", "insurance": "Independence Blue Cross (IBX)", "type": "Psychiatrist", "specialty": "ADHD", "availability": "Waitlist"},
+    {"name": "Dr. Amanda Reyes", "insurance": "Aetna", "type": "Psychiatrist", "specialty": "Anxiety", "outcome": "Accepting New Patients"},
+    {"name": "Dr. Marcus Liu", "insurance": "Independence Blue Cross (IBX)", "type": "Therapist", "specialty": "Depression", "outcome": "Waitlist"},
+    {"name": "Dr. Priya Nair", "insurance": "Highmark Blue Cross Blue Shield", "type": "Psychologist", "specialty": "PTSD", "outcome": "Accepting New Patients"},
+    {"name": "Dr. James Whitfield", "insurance": "Oscar Health", "type": "Counselor", "specialty": "Substance Use", "outcome": "Not Accepting New Patients"},
+    {"name": "Dr. Sofia Alvarez", "insurance": "Aetna", "type": "Social Worker", "specialty": "General Mental Health", "outcome": "Accepting New Patients"},
+    {"name": "Dr. Ben Carter", "insurance": "Independence Blue Cross (IBX)", "type": "Psychiatrist", "specialty": "ADHD", "outcome": "Waitlist"},
 ]
 
 
@@ -36,7 +36,7 @@ def on_click():
     provider_choice = provider_combo.get()
     service_choice = service_combo.get()
     specialty_choice = specialty_combo.get()
-    availability_choice = availability_combo.get()
+    outcome_choice = outcome_combo.get()
 
     matches = []
     for provider in sample_providers:
@@ -46,7 +46,7 @@ def on_click():
             continue
         if specialty_choice not in ("Choose a Specialty", provider["specialty"]):
             continue
-        if availability_choice not in ("Choose Availability", "Any", provider["availability"]):
+        if outcome_choice not in ("Choose Outcome", "Any", provider["outcome"]):
             continue
         matches.append(provider)
 
@@ -55,13 +55,13 @@ def on_click():
         for provider in matches:
             row_text = (
                 f"{provider['name']} - {provider['type']} - {provider['insurance']} - "
-                f"{provider['specialty']} - {provider['availability']}"
+                f"{provider['specialty']} - {provider['outcome']}"
             )
             results_listbox.insert(tk.END, row_text)
 
-            #color the row by availability status
+            #color the row by outcome status
             row_index = results_listbox.size() - 1
-            row_color = STATUS_COLORS.get(provider["availability"], TEXT_DARK)
+            row_color = STATUS_COLORS.get(provider["outcome"], TEXT_DARK)
             results_listbox.itemconfig(row_index, fg=row_color)
     else:
         label.config(text="No providers matches your search.")
@@ -72,7 +72,7 @@ def clear_filters():
     provider_combo.set("Choose your provider")
     service_combo.set("Choose your service type")
     verification_combo.set("Choose Verification status")
-    availability_combo.set("Choose Availability")
+    outcome_combo.set("Choose Outcome")
     specialty_combo.set("Choose a Specialty")
 
     # clear the results list and reset the heading
@@ -143,11 +143,11 @@ verification_combo = ttk.Combobox(dropdown_frame, values= verification_options, 
 verification_combo.set("Choose Verification status")
 verification_combo.grid(row=0, column=3, padx= 6)
 
-#add Availability
-availability_options = ["Any", "Accepting New Patients", "Not Accepting New Patients", "Waitlist"]
-availability_combo = ttk.Combobox(dropdown_frame, values= availability_options ,state= "readonly", width= 22)
-availability_combo.set("Choose Availability")
-availability_combo.grid(row=0, column=4, padx= 6)
+#add Outcome
+outcome_options = ["Any", "Accepting New Patients", "Not Accepting New Patients", "Waitlist"]
+outcome_combo = ttk.Combobox(dropdown_frame, values= outcome_options ,state= "readonly", width= 22)
+outcome_combo.set("Choose Outcome")
+outcome_combo.grid(row=0, column=4, padx= 6)
 
 #add Specialty
 specialty_options = ["Anxiety", "Depression", "ADHD", "PTSD", "Substance Use", "Couples/Familty", "General Mental Health", "Other"]
