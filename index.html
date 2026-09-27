@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unghosted</title>
+<style>
+  :root {
+    --accent: #2f6f5e;
+    --accent-dark: #1f4d40;
+    --bg: #faf9f6;
+    --card: #ffffff;
+    --border: #e0ddd5;
+    --text: #24231f;
+    --text-muted: #6b6a63;
+    --danger: #b3261e;
+    --danger-bg: #fbeae9;
+    --warn-bg: #fff6e5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    background-image: radial-gradient(circle at 15% 0%, #eef5f1 0%, var(--bg) 45%);
+    color: var(--text);
+    margin: 0;
+    padding: 0 16px 60px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; }
+  header {
+    padding: 28px 0 6px;
+    text-align: center;
+  }
+  header h1 {
+    font-size: 30px;
+    margin: 0;
+    letter-spacing: -0.02em;
+    color: var(--accent-dark);
+  }
+  header p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin: 6px 0 0;
+  }
+  .trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #eef5f1;
+    border: 1px solid #cfe3d9;
+    color: var(--accent-dark);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .crisis-banner {
+    background: var(--danger-bg);
+    border: 1px solid #f0c4c1;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .crisis-banner strong { color: var(--danger); }
+  .crisis-banner a { color: var(--danger); font-weight: 600; }
+
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeIn .32s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 2px rgba(36,35,31,0.04), 0 4px 14px rgba(36,35,31,0.045);
+    transition: box-shadow .18s ease, transform .18s ease;
+  }
+  .result-card-wrap {
+    animation: cardIn .35s ease both;
+  }
+  .result-card-wrap:hover {
+    box-shadow: 0 2px 4px rgba(36,35,31,0.06), 0 10px 24px rgba(36,35,31,0.08);
+    transform: translateY(-1px);
+  }
+
+  label { display: block; font-size: 13px; font-weight: 600; margin: 14px 0 6px; }
+  select, input[type=text] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 15px;
+    background: #fff;
+  }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    transition: background .15s ease, transform .1s ease, opacity .15s ease;
+  }
+  button:active { transform: scale(0.98); }
+  button:disabled { opacity: .6; cursor: default; transform: none; }
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    padding: 13px 18px;
+    width: 100%;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(47,111,94,0.28);
+  }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--accent-dark);
+    border: 1px solid var(--accent);
+    padding: 10px 14px;
+    width: 100%;
+    margin-top: 8px;
+  }
+  .btn-link {
+    background: none;
+    color: var(--text-muted);
+    text-decoration: underline;
+    padding: 8px 0;
+    font-size: 13px;
+  }
+  .btn-crisis {
+    background: var(--danger);
+    color: white;
+    padding: 12px;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .result-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .result-info h3 { margin: 0 0 4px; font-size: 16px; letter-spacing: -0.01em; }
+  .result-info .meta { font-size: 13px; color: var(--text-muted); margin: 0 0 6px; }
+  .reason { font-size: 13px; color: var(--accent-dark); background: #eef5f1; display: inline-block; padding: 3px 8px; border-radius: 6px; }
+  .dup-badge {
+    font-size: 12px; font-weight: 600; color: #8a5a12; background: var(--warn-bg);
+    border: 1px solid #eed9a3; display: inline-block; padding: 3px 8px; border-radius: 6px;
+    margin: 0 0 8px 6px;
+  }
+  .score-wrap { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .score-badge {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 17px;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  }
+  .score-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .score-high { background: #2f6f5e; }
+  .score-high ~ .score-label, .score-label.label-high { color: #2f6f5e; }
+  .score-mid { background: #c98a1f; }
+  .score-label.label-mid { color: #c98a1f; }
+  .score-low { background: #b3261e; }
+  .score-label.label-low { color: #b3261e; }
+
+  .result-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .result-actions button {
+    flex: 1;
+    padding: 9px 6px;
+    font-size: 13px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+  }
+  .result-actions button:hover { background: #f2f2ef; }
+
+  .wait-compare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    margin: 8px 0 10px;
+  }
+  .wait-compare > div {
+    border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;
+  }
+  .wait-compare .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+  .wait-compare .value { font-size: 16px; font-weight: 700; }
+  .wait-compare .real { border-color: var(--accent); background: #eef5f1; }
+  .wait-compare .real .value { color: var(--accent-dark); }
+  .wait-compare .worse { border-color: #e2b4b0; background: var(--danger-bg); }
+  .wait-compare .worse .value { color: var(--danger); }
+  .gap-note { font-size: 12px; color: var(--danger); margin: -4px 0 8px; }
+
+  .stat-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center; }
+  .stat-compare .num { font-size: 26px; font-weight: 700; }
+  .stat-compare .cap { font-size: 12px; color: var(--text-muted); }
+  .stat-foot { font-size: 12px; color: var(--text-muted); margin-top: 10px; line-height: 1.4; }
+
+  .report-buttons { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .report-buttons button { padding: 10px; border: 1px solid var(--border); background: #fff; border-radius: 8px; font-size: 14px; }
+  .report-buttons button:hover { background: #f2f2ef; }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--accent-dark); color: white; padding: 10px 16px;
+    border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity .3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  .script-box {
+    background: var(--warn-bg);
+    border: 1px solid #eed9a3;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-top: 10px;
+  }
+
+  .error-text { color: var(--danger); font-size: 13px; margin-top: 6px; display: none; }
+  .support-box { font-size: 13px; color: var(--text-muted); margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Unghosted</h1>
+    <p>Find mental health providers who will actually see you.</p>
+    <div class="trust-badge">📞 Verified with real phone calls — not just directory listings</div>
+  </header>
+
+  <!-- SCREEN 1: crisis check -->
+  <div class="screen active" id="screen-crisis">
+    <div class="card">
+      <label for="crisis-select">Are you in crisis or thinking about harming yourself right now?</label>
+      <select id="crisis-select">
+        <option value="">Select an answer</option>
+        <option value="no">No, I'm looking for a provider</option>
+        <option value="yes">Yes, I need help now</option>
+      </select>
+      <div class="error-text" id="crisis-error">Please select an answer to continue.</div>
+      <button class="btn-primary" onclick="handleCrisisContinue()">Continue</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 1b: crisis resources -->
+  <div class="screen" id="screen-crisis-resources">
+    <div class="crisis-banner">
+      <strong>You're not alone.</strong> The 988 Suicide &amp; Crisis Lifeline is free, confidential, and available 24/7.
+      <br><br>
+      Call or text <a href="tel:988">988</a>, or visit
+      <a href="https://988philly.org" target="_blank" rel="noopener">988philly.org</a>.
+      <br><br>
+      If you are in immediate danger, call 911 or go to your nearest emergency room.
+    </div>
+    <button class="btn-crisis" onclick="window.location.href='tel:988'">Call 988 now</button>
+    <button class="btn-link" onclick="showScreen('screen-crisis')">Go back</button>
+  </div>
+
+  <!-- SCREEN 2: search form -->
+  <div class="screen" id="screen-search">
+    <div class="card">
+      <label for="zip">Your zip code (optional — leave blank to see all providers)</label>
+      <input type="text" id="zip" placeholder="e.g. 19122, or leave blank" value="19122">
+
+      <label for="specialty">What kind of support are you looking for?</label>
+      <select id="specialty">
+        <option value="">Any</option>
+        <option value="Licensed Clinical Social Workers">Individual therapy (LCSW)</option>
+        <option value="Licensed Professional Counselors">Counseling (LPC)</option>
+        <option value="Psychiatry">Psychiatry / medication</option>
+        <option value="Licensed Marriage and Family Therapy">Family / couples therapy</option>
+      </select>
+
+      <label for="language">Preferred language</label>
+      <select id="language">
+        <option value="">Any</option>
+        <option value="Spanish">Spanish</option>
+        <option value="Arabic">Arabic</option>
+        <option value="Mandarin">Mandarin</option>
+      </select>
+
+      <label for="sort">Sort by</label>
+      <select id="sort">
+        <option value="score">Most reliable</option>
+        <option value="wait">Soonest available</option>
+      </select>
+
+      <div class="error-text" id="search-error">Please enter a zip code.</div>
+      <button class="btn-primary" id="search-btn" onclick="runSearch()">Find providers</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: results -->
+  <div class="screen" id="screen-results">
+    <div class="card" id="stat-card" style="display:none;">
+      <div style="font-size:13px; font-weight:700; color:var(--accent-dark); text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;">
+        ⏱ Claimed vs. real wait time
+      </div>
+      <div class="stat-compare">
+        <div>
+          <div class="num" id="stat-claimed">—</div>
+          <div class="cap">CBH says</div>
+        </div>
+        <div>
+          <div class="num" id="stat-verified" style="color:var(--danger);">—</div>
+          <div class="cap">We found</div>
+        </div>
+      </div>
+      <div class="stat-foot" id="stat-foot"></div>
+    </div>
+    <div id="results-count" style="font-size:13px; color:var(--text-muted); margin: 4px 4px 10px;"></div>
+    <div id="results-list"></div>
+    <button class="btn-link" onclick="showScreen('screen-search')">&larr; New search</button>
+    <div class="support-box">
+      Appointment further out than you'd like? Philadelphia's CBH Open Access
+      locations offer walk-in mental health care with no appointment needed.
+      Call Member Services at <a href="tel:8885452600">888-545-2600</a> for the nearest one.
+    </div>
+  </div>
+
+  <!-- SCREEN 4: call script modal-ish screen -->
+  <div class="screen" id="screen-script">
+    <div class="card">
+      <h3 id="script-provider-name" style="margin-top:0;"></h3>
+      <p id="script-provider-phone" style="color:var(--text-muted); font-size:14px;"></p>
+      <div class="script-box">
+        "Hi, I'm calling to see if you're currently accepting new patients
+        with Community Behavioral Health (CBH) insurance for
+        <span id="script-specialty">therapy</span>. What's the earliest
+        available appointment for a new patient?"
+      </div>
+      <button class="btn-secondary" onclick="showScreen('screen-report')">I called — report what happened</button>
+      <button class="btn-link" onclick="showScreen('screen-results')">&larr; Back to results</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: report outcome -->
+  <div class="screen" id="screen-report">
+    <div class="card">
+      <h3 style="margin-top:0;">What happened?</h3>
+      <div class="report-buttons">
+        <button onclick="showBookedStep()">✅ I booked an appointment</button>
+        <button onclick="submitReport('not_accepting')">🚫 Not accepting new patients</button>
+        <button onclick="submitReport('wrong_number')">☎️ Wrong number / disconnected</button>
+        <button onclick="submitReport('no_answer')">🔇 No answer</button>
+      </div>
+      <button class="btn-link" onclick="showScreen('screen-results')">&larr; Back to results</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 5b: booked -> how far out? -->
+  <div class="screen" id="screen-booked">
+    <div class="card">
+      <h3 style="margin-top:0;">Nice work. How many days until your appointment?</h3>
+      <p style="font-size:13px; color:var(--text-muted); margin-top:0;">
+        This helps the next person see how long the wait really is, not just what the directory claims.
+      </p>
+      <label for="booked-days">Days from today</label>
+      <input type="text" id="booked-days" inputmode="numeric" placeholder="e.g. 12" oninput="document.getElementById('booked-error').style.display='none'">
+      <div class="error-text" id="booked-error">Enter a whole number of days between 0 and 365.</div>
+      <button class="btn-primary" onclick="submitBooked()">Submit</button>
+      <button class="btn-link" onclick="submitReport('booked')">Skip — I'd rather not say</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = "http://localhost:8000";
+let currentReportProviderId = null;
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function handleCrisisContinue() {
+  const val = document.getElementById('crisis-select').value;
+  const err = document.getElementById('crisis-error');
+  if (!val) {
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+  if (val === 'yes') {
+    showScreen('screen-crisis-resources');
+  } else {
+    showScreen('screen-search');
+  }
+}
+
+async function runSearch() {
+  const zip = document.getElementById('zip').value.trim();
+  document.getElementById('search-error').style.display = 'none';
+
+  const specialty = document.getElementById('specialty').value;
+  const language = document.getElementById('language').value;
+  const sort = document.getElementById('sort').value;
+
+  const params = new URLSearchParams({ limit: 25, sort });
+  if (zip) params.set('zip_code', zip);
+  if (specialty) params.set('specialty', specialty);
+  if (language) params.set('language', language);
+
+  const btn = document.getElementById('search-btn');
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Searching…';
+
+  let providers = [];
+  try {
+    const res = await fetch(`${API_BASE}/providers/search?${params.toString()}`);
+    if (!res.ok) throw new Error('bad response');
+    providers = await res.json();
+  } catch (e) {
+    showToast("Couldn't reach the server — is the backend running?");
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+    return;
+  }
+
+  renderResults(providers, sort, zip);
+  renderStatCard(zip);
+  showScreen('screen-results');
+  btn.disabled = false;
+  btn.textContent = originalLabel;
+}
+
+async function renderStatCard(zip) {
+  const card = document.getElementById('stat-card');
+  const claimedEl = document.getElementById('stat-claimed');
+  const verifiedEl = document.getElementById('stat-verified');
+  const foot = document.getElementById('stat-foot');
+  try {
+    const res = await fetch(`${API_BASE}/stats?zip_code=${encodeURIComponent(zip)}`);
+    if (!res.ok) throw new Error('bad response');
+    const s = await res.json();
+
+    if (s.compared_provider_count > 0) {
+      claimedEl.textContent = `${s.claimed_avg_wait_days}d`;
+      verifiedEl.textContent = `${s.verified_avg_wait_days}d`;
+      const n = s.compared_provider_count;
+      foot.textContent = `Average wait for a new patient, across ${n} provider${n === 1 ? '' : 's'} near ${zip} ` +
+        `we checked by phone. "CBH says" is the providers' own self-reported number.`;
+      card.style.display = 'block';
+    } else if (s.fallback_claimed_avg_wait_days != null) {
+      claimedEl.textContent = `${s.fallback_claimed_avg_wait_days}d`;
+      verifiedEl.textContent = '?';
+      foot.textContent = `Nobody has checked these wait times by phone yet. Book an appointment and tell us how far out it was.`;
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  } catch (e) {
+    card.style.display = 'none';
+  }
+}
+
+function waitCompareHtml(p) {
+  const claimed = p.reported_wait_days;
+  const real = p.verified_wait_days;
+  if (claimed == null && real == null) return '';
+  const claimedTxt = claimed != null ? `${claimed} days` : 'not listed';
+  const realTxt = real != null ? `${real} days` : 'not checked yet';
+  // Flag it when reality is meaningfully worse than the claim (a week or more, or double).
+  const worse = claimed != null && real != null && (real - claimed >= 7 || real >= claimed * 2);
+  return `
+    <div class="wait-compare">
+      <div><div class="label">CBH says</div><div class="value">${claimedTxt}</div></div>
+      <div class="${real != null ? (worse ? 'worse' : 'real') : ''}">
+        <div class="label">We found</div><div class="value">${realTxt}</div>
+      </div>
+    </div>
+    ${worse ? `<p class="gap-note">Real wait is ${real - claimed} days longer than listed.</p>` : ''}
+  `;
+}
+
+function scoreClass(score) {
+  if (score >= 65) return 'score-high';
+  if (score >= 35) return 'score-mid';
+  return 'score-low';
+}
+
+function scoreLabel(score) {
+  if (score >= 65) return { text: 'Verified', cls: 'label-high' };
+  if (score >= 35) return { text: 'Unverified', cls: 'label-mid' };
+  return { text: 'Issue found', cls: 'label-low' };
+}
+
+function renderResults(providers, sort, zip) {
+  const list = document.getElementById('results-list');
+  const countEl = document.getElementById('results-count');
+  list.innerHTML = '';
+
+  if (providers.length) {
+    const issues = providers.filter(p => p.score < 35).length;
+    const scope = zip ? ` near ${zip}` : ' across all zip codes';
+    countEl.textContent = `${providers.length} provider${providers.length === 1 ? '' : 's'} found${scope}` +
+      (issues > 0 ? ` — ${issues} with a verified issue` : '');
+  } else {
+    countEl.textContent = '';
+  }
+
+  if (!providers.length) {
+    const msg = sort === 'wait'
+      ? 'No verified providers with a short wait matched. Try "Most reliable" sort or a different zip code.'
+      : 'No providers matched. Try a different zip code or clear the filters.';
+    list.innerHTML = `<div class="card">${msg}</div>`;
+    return;
+  }
+
+  providers.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'card result-card-wrap';
+    card.style.animationDelay = `${Math.min(i * 45, 400)}ms`;
+    const label = scoreLabel(p.score);
+    const dupBadge = (p.duplicate_listing_count || 0) > 0
+      ? `<span class="dup-badge">⚠ ${p.duplicate_listing_count + 1} listings for this provider — possible duplicate</span>`
+      : '';
+    card.innerHTML = `
+      <div class="result-card">
+        <div class="result-info">
+          <h3>${p.name}</h3>
+          <p class="meta">${p.specialty || ''} &middot; ${p.address || ''}</p>
+          <p class="meta">${p.phone}</p>
+        </div>
+        <div class="score-wrap">
+          <div class="score-badge ${scoreClass(p.score)}">${p.score}</div>
+          <div class="score-label ${label.cls}">${label.text}</div>
+        </div>
+      </div>
+      ${waitCompareHtml(p)}
+      <span class="reason">${p.score_reason}</span>${dupBadge}
+      <div class="result-actions">
+        <button onclick="openScript(${p.id}, '${escapeQuotes(p.name)}', '${p.phone}', '${escapeQuotes(p.specialty || '')}')">Call script</button>
+        <a href="tel:${p.phone}" style="text-decoration:none;"><button style="width:100%;">Call now</button></a>
+        <button onclick="openReport(${p.id})">Report outcome</button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function escapeQuotes(s) {
+  return (s || '').replace(/'/g, "\\'");
+}
+
+function openScript(id, name, phone, specialty) {
+  currentReportProviderId = id;
+  document.getElementById('script-provider-name').textContent = name;
+  document.getElementById('script-provider-phone').textContent = phone;
+  document.getElementById('script-specialty').textContent = specialty || 'therapy';
+  showScreen('screen-script');
+}
+
+function openReport(id) {
+  currentReportProviderId = id;
+  showScreen('screen-report');
+}
+
+function showBookedStep() {
+  document.getElementById('booked-days').value = '';
+  document.getElementById('booked-error').style.display = 'none';
+  showScreen('screen-booked');
+}
+
+function submitBooked() {
+  const raw = document.getElementById('booked-days').value.trim();
+  const err = document.getElementById('booked-error');
+  if (!/^\d+$/.test(raw) || Number(raw) > 365) {
+    err.style.display = 'block';
+    return;
+  }
+  submitReport('booked', Number(raw));
+}
+
+async function submitReport(outcome, waitDays) {
+  if (!currentReportProviderId) return;
+  const body = { outcome };
+  if (waitDays != null) body.wait_days = waitDays;
+  try {
+    const res = await fetch(`${API_BASE}/providers/${currentReportProviderId}/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error('bad response');
+    const updated = await res.json();
+    showToast(`Thanks — score updated to ${updated.score}/100`);
+  } catch (e) {
+    showToast("Couldn't reach the server — is the backend running?");
+  }
+  showScreen('screen-search');
+}
+</script>
+</body>
+</html>

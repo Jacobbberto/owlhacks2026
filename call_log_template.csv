@@ -1,0 +1,11 @@
+provider_id,provider_name,phone,caller_name,outcome,actual_wait_days,notes
+,Healing and Balance Therapeutic Services LLC,215-930-1499,Erica,voicemail_vague,,Generic voicemail greeting, no info on availability
+,Public Health Management Corporation (PHMC) - Health Connection,215-765-6690,Unknown,voicemail_vague,,Automated system asks for date of birth name and best time to call
+,Department of Public Health - Strawberry Mansion Health,215-685-2400,Unknown,no_answer,,Rang through, no pickup, no voicemail
+,Mental Health Partnerships,267-507-3424,Unknown,no_answer,,Automated message says person not available right now, no option to leave message, hangs up
+,Merakey - Allegheny Ave,215-427-1500,Unknown,wrong_number,,Number not in service, automated intercept offered to help find another business
+,Quality Community Health Care Inc.,215-227-0300,Unknown,wrong_number,,Call failure error EC457A, number is inactive, call disconnects
+,WES Health System,215-226-7100,Unknown,voicemail_vague,,Automated system, menu options 1/3, routes to voicemail, no live person reached
+,Cognitive Behavioral Services Inc.,215-634-3976,Unknown,voicemail_vague,,Press 1 routes to record a message for the operator, no live person
+,Esperanza Health Center,215-302-3600,Unknown,voicemail_vague,,Automated message: true hours Mon-Fri 9am-5pm, press 1 only for emergencies
+,Harmony Wellness Group Inc.,215-539-2473,Unknown,accepting,,Live person confirmed accepting new patients, forwarding message to get wait time
