@@ -16,10 +16,13 @@ Run standalone to rescore everything in the DB:
     python3 scoring.py
 """
 
+import os
 import sqlite3
 from collections import Counter
 
-DB_PATH = "unghosted.db"
+# Absolute path next to this file, so it finds the right database no matter
+# which folder the server (or `python3 scoring.py`) is launched from.
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unghosted.db")
 MIN_LABELED_FOR_ML = 30  # below this, always use rule-based scoring
 
 # --- Rule-based weights -----------------------------------------------
