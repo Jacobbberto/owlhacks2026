@@ -1,28 +1,38 @@
 """
 Unghosted backend API.
 
-Run:
-    pip install --break-system-packages fastapi uvicorn
+Local run:
+    pip install --break-system-packages -r requirements.txt
     python3 seed_data.py          # first time only, or after resetting DB
     uvicorn main:app --reload --port 8000
 
-Then open frontend/index.html (it calls http://localhost:8000 by default).
+Deployed (e.g. Render): start command is
+    uvicorn main:app --host 0.0.0.0 --port $PORT
+This one service also serves the web page at "/", so the deployed URL is
+the whole app. Nothing in index.html needs editing for a deploy.
 """
 
+import os
 import sqlite3
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from scoring import rescore_all
 
-DB_PATH = "unghosted.db"
+# Absolute path so this works regardless of the working directory the
+# deployment platform launches uvicorn from (Render, Railway, etc. don't
+# always cd into this folder first).
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unghosted.db")
 
 app = FastAPI(title="Unghosted API")
 
-# Wide open for hackathon purposes — tighten before this ever sees real users.
+# Wide open so the frontend (hosted on a different domain, e.g. Netlify)
+# can call this API. Fine for a demo/pilot; if this ever handles real user
+# data at scale, replace "*" with the frontend's exact deployed origin.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -45,8 +55,27 @@ class ReportIn(BaseModel):
 VALID_REPORT_OUTCOMES = {"booked", "not_accepting", "wrong_number", "no_answer"}
 
 
+# The app serves its own web page, so a deploy is ONE service with ONE URL
+# (no separate frontend host, no CORS, no API address to edit). It looks for
+# index.html next to this file (flat repo layout) or in ../frontend/ (the
+# backend/ + frontend/ layout).
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_FRONTEND_CANDIDATES = [
+    os.path.join(_HERE, "index.html"),
+    os.path.join(_HERE, "..", "frontend", "index.html"),
+]
+
+
 @app.get("/")
 def root():
+    for path in _FRONTEND_CANDIDATES:
+        if os.path.exists(path):
+            return FileResponse(path)
+    return {"service": "unghosted", "status": "ok"}
+
+
+@app.get("/health")
+def health():
     return {"service": "unghosted", "status": "ok"}
 
 
@@ -209,3 +238,38 @@ def list_all_providers():
     rows = conn.execute("SELECT * FROM providers ORDER BY score DESC").fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+@app.get("/meta")
+def meta():
+    """
+    Real, distinct filter values currently in the database. The frontend
+    uses this to populate the specialty/language dropdowns instead of a
+    hardcoded list — a hardcoded list can silently offer options with zero
+    matching providers (e.g. a specialty nobody in this dataset has), which
+    looks like a broken filter when it's really just an empty result set.
+    """
+    conn = get_conn()
+    specialty_rows = conn.execute(
+        "SELECT DISTINCT specialty FROM providers WHERE specialty IS NOT NULL AND specialty != '' ORDER BY specialty"
+    ).fetchall()
+    language_rows = conn.execute(
+        "SELECT languages FROM providers WHERE languages IS NOT NULL AND languages != ''"
+    ).fetchall()
+    zip_rows = conn.execute(
+        "SELECT DISTINCT zip_code FROM providers WHERE zip_code IS NOT NULL AND zip_code != '' ORDER BY zip_code"
+    ).fetchall()
+    conn.close()
+
+    languages = set()
+    for row in language_rows:
+        for part in row["languages"].split(","):
+            part = part.strip()
+            if part and part != "Translation Support Available" and part != "Language Services Available":
+                languages.add(part)
+
+    return {
+        "specialties": [r["specialty"] for r in specialty_rows],
+        "languages": sorted(languages),
+        "zip_codes": [r["zip_code"] for r in zip_rows],
+    }
