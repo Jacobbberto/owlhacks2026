@@ -283,18 +283,11 @@
       <label for="specialty">What kind of support are you looking for?</label>
       <select id="specialty">
         <option value="">Any</option>
-        <option value="Licensed Clinical Social Workers">Individual therapy (LCSW)</option>
-        <option value="Licensed Professional Counselors">Counseling (LPC)</option>
-        <option value="Psychiatry">Psychiatry / medication</option>
-        <option value="Licensed Marriage and Family Therapy">Family / couples therapy</option>
       </select>
 
       <label for="language">Preferred language</label>
       <select id="language">
         <option value="">Any</option>
-        <option value="Spanish">Spanish</option>
-        <option value="Arabic">Arabic</option>
-        <option value="Mandarin">Mandarin</option>
       </select>
 
       <label for="sort">Sort by</label>
@@ -386,13 +379,58 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const API_BASE = "http://localhost:8000";
+// Where the API lives. Nothing to edit when deploying: on startup the page asks
+// the server it came from "are you the Unghosted API?". If yes (a deployed site,
+// or the backend run directly), it uses that same address. If not (the page was
+// opened as a plain file, or from a static server like `python3 -m http.server 5500`),
+// it falls back to the backend on localhost:8000, the way it always worked locally.
+let API_BASE = "";
+const apiReady = (async () => {
+  try {
+    const r = await fetch("/health");
+    if (r.ok && (await r.json()).service === "unghosted") return;
+  } catch (e) { /* not served by the API: use the local fallback below */ }
+  API_BASE = "http://localhost:8000";
+})();
+
 let currentReportProviderId = null;
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
+
+async function loadFilterOptions() {
+  // Populates the specialty/language dropdowns from whatever is actually
+  // in the database, instead of a hardcoded guess — guarantees every
+  // option you can pick returns at least one real result.
+  try {
+    await apiReady;
+    const res = await fetch(`${API_BASE}/meta`);
+    if (!res.ok) throw new Error('bad response');
+    const meta = await res.json();
+
+    const specialtySelect = document.getElementById('specialty');
+    meta.specialties.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s;
+      opt.textContent = s;
+      specialtySelect.appendChild(opt);
+    });
+
+    const languageSelect = document.getElementById('language');
+    meta.languages.forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l;
+      opt.textContent = l;
+      languageSelect.appendChild(opt);
+    });
+  } catch (e) {
+    // Backend not reachable yet (e.g. page loaded before server is up) —
+    // dropdowns just stay at "Any", which still works fine.
+  }
+}
+loadFilterOptions();
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -417,6 +455,7 @@ function handleCrisisContinue() {
 }
 
 async function runSearch() {
+  await apiReady;
   const zip = document.getElementById('zip').value.trim();
   document.getElementById('search-error').style.display = 'none';
 
@@ -602,6 +641,7 @@ function submitBooked() {
 }
 
 async function submitReport(outcome, waitDays) {
+  await apiReady;
   if (!currentReportProviderId) return;
   const body = { outcome };
   if (waitDays != null) body.wait_days = waitDays;
