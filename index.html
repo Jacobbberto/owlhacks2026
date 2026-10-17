@@ -207,6 +207,8 @@
   }
   .wait-compare .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
   .wait-compare .value { font-size: 16px; font-weight: 700; }
+  .wait-compare.single { grid-template-columns: 1fr; }
+  .wait-compare .sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
   .wait-compare .real { border-color: var(--accent); background: #eef5f1; }
   .wait-compare .real .value { color: var(--accent-dark); }
   .wait-compare .worse { border-color: #e2b4b0; background: var(--danger-bg); }
@@ -314,6 +316,16 @@
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  .site-footer {
+    margin-top: 28px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-muted);
+    text-align: center;
   }
 
   .error-text { color: var(--danger); font-size: 13px; margin-top: 6px; display: none; }
@@ -472,6 +484,12 @@
       <button class="btn-link" onclick="submitReport('booked')">Skip — I'd rather not say</button>
     </div>
   </div>
+
+  <footer class="site-footer">
+    Proof of concept built at OwlHacks 2026 (Temple University). Scores come from a small number of
+    phone calls, public registry data, and user reports. They are not a judgment of care quality
+    and not medical advice. In a crisis, call or text 988.
+  </footer>
 
 </div>
 
@@ -677,8 +695,17 @@ function waitCompareHtml(p) {
   const claimed = p.reported_wait_days;
   const real = p.verified_wait_days;
   if (claimed == null && real == null) return '';
-  const claimedTxt = claimed != null ? `${claimed} days` : 'not listed';
-  const realTxt = real != null ? `${real} days` : 'not checked yet';
+  const days = n => `${n} ${n === 1 ? 'day' : 'days'}`;
+  // CBH lists no wait but we found one: show just our number, not a half-empty comparison.
+  if (claimed == null && real != null) {
+    return `
+      <div class="wait-compare single">
+        <div class="real"><div class="label">We found</div><div class="value">${days(real)}</div>
+        <div class="sub">CBH doesn't list a wait for this provider</div></div>
+      </div>`;
+  }
+  const claimedTxt = days(claimed);
+  const realTxt = real != null ? days(real) : 'not checked yet';
   // Flag it when reality is meaningfully worse than the claim (a week or more, or double).
   const worse = claimed != null && real != null && (real - claimed >= 7 || real >= claimed * 2);
   return `
@@ -751,7 +778,7 @@ function renderResults(providers, sort, zip) {
       <div class="result-actions">
         <button class="js-script">Call script</button>
         <a class="btn-call" href="tel:${esc(p.phone)}">Call now</a>
-        <button class="js-report">Report outcome</button>
+        <button class="js-report">Report call</button>
       </div>
     `;
     card.querySelector('.js-script').addEventListener('click', () => openScript(p.id, p.name, p.phone, p.specialty || ''));
